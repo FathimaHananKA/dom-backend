@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'dormitories',
     'rooms',
     'allocations',
-    'requests'
+    'requests',
+    'reports'
 ]
 
 MIDDLEWARE = [
