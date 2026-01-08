@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'accounts',
     'dormitories',
     'rooms',
-    'allocations'
+    'allocations',
+    'requests'
 ]
 
 MIDDLEWARE = [

@@ -26,5 +26,6 @@ urlpatterns = [
     path('api/', include('dormitories.urls')),
     path('api/', include('rooms.urls')),
     path('api/', include('allocations.urls')),
+    path('api/', include('requests.urls')),
     path('admin/', admin.site.urls),
 ]
