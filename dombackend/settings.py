@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'dormmanager',
     'accounts',
     'dormitories',
+    'rooms'
 ]
 
 MIDDLEWARE = [
