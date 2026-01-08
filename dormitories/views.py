@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from rest_framework.viewsets import ModelViewSet
+from .models import Dormitory
+from .serializers import DormitorySerializer
 
-# Create your views here.
+class DormitoryViewSet(ModelViewSet):
+    queryset = Dormitory.objects.all()
+    serializer_class = DormitorySerializer

@@ -23,5 +23,6 @@ urlpatterns = [
     path('', hello_world),  # This will handle /
     path('api/', include('dormmanager.urls')),
     path('api/', include('accounts.urls')),
+    path('api/', include('dormitories.urls')),
     path('admin/', admin.site.urls),
 ]
