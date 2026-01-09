@@ -22,3 +22,13 @@ class AllocationSerializer(serializers.ModelSerializer):
         bed.save()
 
         return allocation
+
+        
+class MyAccommodationSerializer(serializers.ModelSerializer):
+    dormitory = serializers.CharField(source='room.dormitory.name')
+    room = serializers.CharField(source='room.room_number')
+    bed = serializers.CharField(source='bed.bed_number')
+
+    class Meta:
+        model = Allocation
+        fields = ['dormitory', 'room', 'bed', 'allocated_at']

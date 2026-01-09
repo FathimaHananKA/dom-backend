@@ -32,7 +32,7 @@ class StudentProfile(models.Model):
     year = models.IntegerField()
     gender = models.CharField(
         max_length=10,
-        choices=(('Male', 'Male'), ('Female', 'Female'))
+        choices=(('MALE', 'Male'), ('FEMALE', 'Female'))
     )
 
     def __str__(self):
