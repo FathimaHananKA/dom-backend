@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import StudentProfile
 from rooms.models import Room
+from dormitories.models import Dormitory 
 
 class Request(models.Model):
     STATUS_CHOICES = (
@@ -38,3 +39,32 @@ class Request(models.Model):
 
     def __str__(self):
         return f"{self.student.user.username} → {self.status}"
+
+
+
+class DormApplication(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    )
+
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name='dorm_applications'
+    )
+    preferred_dormitory = models.ForeignKey(
+        Dormitory,
+        on_delete=models.CASCADE,
+        related_name='applications'
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='PENDING'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.user.username} → {self.preferred_dormitory.name} ({self.status})"
