@@ -44,12 +44,25 @@ class RoleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
+    student_profile = serializers.SerializerMethodField()
+    role_name = serializers.CharField(source='role.name', read_only=True)
+    
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_active', 'date_joined']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'role_name', 'student_profile', 'is_active', 'date_joined']
         extra_kwargs = {
             'password': {'write_only': True}
         }
+    
+    def get_student_profile(self, obj):
+        if hasattr(obj, 'studentprofile'):
+            return {
+                'student_id': obj.studentprofile.student_id,
+                'department': obj.studentprofile.department,
+                'year': obj.studentprofile.year,
+                'gender': obj.studentprofile.gender,
+            }
+        return None
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)

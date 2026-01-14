@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import generics, permissions
+from rest_framework.response import Response
 from .models import Request, DormApplication
 from .serializers import RequestSerializer, DormApplicationSerializer
 
@@ -35,3 +36,10 @@ class DormApplicationDetailView(generics.RetrieveAPIView):
         student_profile = self.request.user.studentprofile
         # There should be only one active application per student
         return DormApplication.objects.filter(student=student_profile).first()
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response({'application': None}, status=200)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
