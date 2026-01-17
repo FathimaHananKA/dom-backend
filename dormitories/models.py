@@ -10,6 +10,8 @@ class Dormitory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     total_rooms = models.PositiveIntegerField()
+    total_beds = models.PositiveIntegerField(default=0)
+
 
     assigned_warden = models.ForeignKey(
         WardenProfile,

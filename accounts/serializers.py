@@ -113,8 +113,50 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 
 class WardenProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    user_id = serializers.IntegerField(write_only=True)
-
+    username = serializers.CharField(write_only=True, required=True)
+    email = serializers.EmailField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=True)
+    first_name = serializers.CharField(write_only=True, required=False)
+    last_name = serializers.CharField(write_only=True, required=False)
+    
     class Meta:
         model = WardenProfile
-        fields = '__all__'
+        fields = ['id', 'user', 'employee_id', 'phone_number', 'username', 'email', 'password', 'first_name', 'last_name', 'gender']
+        
+    def create(self, validated_data):
+        username = validated_data.pop('username')
+        email = validated_data.pop('email')
+        password = validated_data.pop('password')
+        first_name = validated_data.get('first_name', '')
+        last_name = validated_data.get('last_name', '')
+        
+        # Remove these from validated_data as they are not model fields
+        if 'first_name' in validated_data:
+            validated_data.pop('first_name')
+        if 'last_name' in validated_data:
+            validated_data.pop('last_name')
+
+        user_data = {
+            'username': username,
+            'email': email,
+            'password': password,
+            'first_name': first_name,
+            'last_name': last_name
+        }
+        
+        user_serializer = UserSerializer(data=user_data)
+        user_serializer.is_valid(raise_exception=True)
+        user = user_serializer.save()
+        
+        # Set role to WARDEN
+        try:
+            warden_role = Role.objects.get(name='WARDEN')
+        except Role.DoesNotExist:
+             # Fallback or create if not exists
+            warden_role, _ = Role.objects.get_or_create(name='WARDEN')
+            
+        user.role = warden_role
+        user.save()
+        
+        warden_profile = WardenProfile.objects.create(user=user, **validated_data)
+        return warden_profile

@@ -14,7 +14,7 @@ router = DefaultRouter()
 router.register(r'roles', RoleViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'student-profiles', StudentProfileViewSet, basename='student-profile')
-router.register(r'warden-profiles', WardenProfileViewSet)
+router.register(r'wardens', WardenProfileViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

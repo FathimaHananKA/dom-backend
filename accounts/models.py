@@ -42,6 +42,11 @@ class WardenProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     employee_id = models.CharField(max_length=20, unique=True)
     phone_number = models.CharField(max_length=15)
+    gender = models.CharField(
+        max_length=10,
+        choices=(('MALE', 'Male'), ('FEMALE', 'Female')),
+        default='MALE'
+    )
 
     def __str__(self):
         return self.employee_id
