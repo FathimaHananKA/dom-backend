@@ -8,6 +8,18 @@ class Room(models.Model):
         on_delete=models.CASCADE,
         related_name='rooms'
     )
+    floor = models.PositiveIntegerField(default=1)
+    room_type = models.CharField(
+        max_length=10,
+        choices=(
+            ('single', 'Single'),
+            ('double', 'Double'),
+            ('triple', 'Triple'),
+            ('quad', 'Quad')
+        ),
+        default='double'
+    )
+    capacity = models.IntegerField(default=2)
 
     def __str__(self):
         return f"{self.room_number} - {self.dormitory.name}"
