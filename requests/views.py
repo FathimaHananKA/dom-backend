@@ -43,3 +43,12 @@ class DormApplicationDetailView(generics.RetrieveAPIView):
             return Response({'application': None}, status=200)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class DormApplicationListView(generics.ListAPIView):
+    """
+    List all dorm applications (Admin only).
+    """
+    queryset = DormApplication.objects.all()
+    serializer_class = DormApplicationSerializer
+    permission_classes = [permissions.IsAdminUser]

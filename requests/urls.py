@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import RequestViewSet, DormApplicationCreateView, DormApplicationDetailView
+from .views import RequestViewSet, DormApplicationCreateView, DormApplicationDetailView, DormApplicationListView
 
 # DRF router for RequestViewSet
 router = DefaultRouter()
@@ -13,4 +13,5 @@ urlpatterns = [
     # Dorm Application endpoints
     path('student/apply/', DormApplicationCreateView.as_view(), name='dorm-apply'),           # POST to apply
     path('student/application/', DormApplicationDetailView.as_view(), name='dorm-application-detail'),  # GET application
+    path('applications/', DormApplicationListView.as_view(), name='admin-applications-list'), # Admin list applications
 ]

@@ -9,8 +9,15 @@ class AllocationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_bed(self, bed):
+        # Check if bed is occupied AND has an active allocation
         if bed.is_occupied:
-            raise serializers.ValidationError("This bed is already occupied.")
+            # Self-healing: If marked occupied but NO allocation exists, allow it.
+            if Allocation.objects.filter(bed=bed).exists():
+                raise serializers.ValidationError("This bed is already occupied.")
+            else:
+                # If no allocation, we effectively consider it available and allow re-allocation
+                # We could auto-fix here, but create() will set it to True anyway.
+                pass
         return bed
 
     def create(self, validated_data):

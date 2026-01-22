@@ -15,7 +15,7 @@ class Room(models.Model):
             ('single', 'Single'),
             ('double', 'Double'),
             ('triple', 'Triple'),
-            ('quad', 'Quad')
+            
         ),
         default='double'
     )

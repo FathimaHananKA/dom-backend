@@ -28,7 +28,10 @@ class User(AbstractUser):
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     student_id = models.CharField(max_length=20, unique=True)
-    department = models.CharField(max_length=100)
+    department = models.CharField(
+        max_length=10,
+        choices=(('UG','Ug'),('PG','Pg'))
+    )
     year = models.IntegerField()
     gender = models.CharField(
         max_length=10,

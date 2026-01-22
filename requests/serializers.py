@@ -14,7 +14,7 @@ class DormApplicationSerializer(serializers.ModelSerializer):
     student_username = serializers.CharField(source='student.user.username', read_only=True)
     student_id = serializers.CharField(source='student.student_id', read_only=True)
     gender = serializers.CharField(source='student.gender', read_only=True)
-    department = serializers.CharField(source='student.department', read_only=True)
+    department = serializers.CharField(source='student.', read_only=True)
     dorm_name = serializers.CharField(source='preferred_dormitory.name', read_only=True)
 
     class Meta:
@@ -27,6 +27,7 @@ class DormApplicationSerializer(serializers.ModelSerializer):
             'gender',
             'department',
             'preferred_dormitory',
+            'room_preference',
             'dorm_name',
             'status',
             'created_at'
