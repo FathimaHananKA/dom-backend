@@ -21,7 +21,7 @@ class DormitorySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Dormitory
-        fields = ['id', 'name', 'gender', 'total_rooms', 'total_beds', 'assigned_warden', 'warden_name', 
+        fields = ['id', 'name', 'gender', 'type', 'category', 'total_rooms', 'total_beds', 'assigned_warden', 'warden_name', 
                  'room_prefix', 'room_configurations', 'occupied_beds', 'available_beds', 'availability_by_type',
                  'total_by_type', 'pending_applications_count', 'pending_room_changes_count']
         read_only_fields = ['warden_name', 'total_rooms', 'total_beds', 'occupied_beds', 'available_beds', 

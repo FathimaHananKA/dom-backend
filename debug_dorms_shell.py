@@ -1,0 +1,1 @@
+from dormitories.models import Dormitory; print(f"{'ID':<4} | {'Name':<20} | {'Gender':<10} | {'Type':<5} | {'Category':<8}"); print("-" * 70); print('\n'.join([f"{d.id:<4} | {d.name:<20} | {d.gender:<10} | {d.type:<5} | {d.category:<8}" for d in Dormitory.objects.all()]))

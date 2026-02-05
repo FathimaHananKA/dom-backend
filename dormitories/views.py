@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 class DormitoryViewSet(ModelViewSet):
     queryset = Dormitory.objects.all()
     serializer_class = DormitorySerializer
+    filterset_fields = ['type', 'gender']
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def my_dormitory(self, request):
