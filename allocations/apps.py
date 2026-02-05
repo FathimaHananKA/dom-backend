@@ -4,6 +4,7 @@ from django.apps import AppConfig
 class AllocationsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'allocations'
-    
+
     def ready(self):
-        import allocations.signals  # Register signals
+        import allocations.signals
+

@@ -22,13 +22,24 @@ class AllocationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         allocation = super().create(validated_data)
-
         # mark bed as occupied
         bed = allocation.bed
         bed.is_occupied = True
         bed.save()
-
         return allocation
+
+    def update(self, instance, validated_data):
+        old_bed = instance.bed
+        new_bed = validated_data.get('bed', old_bed)
+
+        if old_bed != new_bed:
+            old_bed.is_occupied = False
+            old_bed.save()
+
+            new_bed.is_occupied = True
+            new_bed.save()
+
+        return super().update(instance, validated_data)
 
         
 class MyAccommodationSerializer(serializers.ModelSerializer):
@@ -39,3 +50,17 @@ class MyAccommodationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Allocation
         fields = ['dormitory', 'room', 'bed', 'allocated_at']
+
+
+class AllocationListSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.user.username', read_only=True)
+    student_id = serializers.CharField(source='student.student_id', read_only=True) 
+    dormitory_name = serializers.CharField(source='bed.room.dormitory.name', read_only=True)
+    room_number = serializers.CharField(source='bed.room.room_number', read_only=True)
+    bed_number = serializers.CharField(source='bed.bed_number', read_only=True)
+    room_type = serializers.CharField(source='bed.room.room_type', read_only=True)
+    floor = serializers.IntegerField(source='bed.room.floor', read_only=True)
+    
+    class Meta:
+        model = Allocation
+        fields = ['id', 'student', 'bed', 'student_name', 'student_id', 'dormitory_name', 'room_number', 'bed_number', 'allocated_at', 'room_type', 'floor']

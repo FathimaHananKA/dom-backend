@@ -61,6 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
                 'department': obj.studentprofile.department,
                 'year': obj.studentprofile.year,
                 'gender': obj.studentprofile.gender,
+                'can_change_room': obj.studentprofile.can_change_room,
             }
         return None
 

@@ -2,12 +2,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from allocations.models import Allocation
 from rooms.models import Bed
-from requests.models import Request
+from student_requests.models import Request
 
 class BedOccupancyReport(APIView):
     def get(self, request):
-        total_beds = Bed.objects.count()
-        occupied_beds = Bed.objects.filter(is_occupied=True).count()
+        # Default querysets
+        beds = Bed.objects.all()
+        
+        # Filter by warden's dormitory if user is a warden
+        if hasattr(request.user, 'wardenprofile'):
+            from dormitories.models import Dormitory
+            warden_dorms = Dormitory.objects.filter(assigned_warden=request.user.wardenprofile)
+            if warden_dorms.exists():
+                beds = beds.filter(room__dormitory__in=warden_dorms)
+        
+        total_beds = beds.count()
+        occupied_beds = beds.filter(is_occupied=True).count()
         available_beds = total_beds - occupied_beds
 
         return Response({
@@ -19,7 +29,15 @@ class BedOccupancyReport(APIView):
 
 class AllocationReport(APIView):
     def get(self, request):
-        allocations = Allocation.objects.select_related('student', 'bed')
+        allocations = Allocation.objects.select_related('student', 'bed', 'bed__room', 'bed__room__dormitory')
+        
+        # Filter by warden's dormitory if user is a warden
+        if hasattr(request.user, 'wardenprofile'):
+            from dormitories.models import Dormitory
+            warden_dorms = Dormitory.objects.filter(assigned_warden=request.user.wardenprofile)
+            if warden_dorms.exists():
+                allocations = allocations.filter(bed__room__dormitory__in=warden_dorms)
+        
         data = [
             {
                 "student": alloc.student.user.username,

@@ -15,6 +15,7 @@ class Allocation(models.Model):
         related_name='allocation'
     )
     allocated_at = models.DateTimeField(auto_now_add=True)
+    is_paid = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.student} → {self.bed}"

@@ -12,11 +12,20 @@ class DormitorySerializer(serializers.ModelSerializer):
     # Calculate totals dynamically from actual Room and Bed counts
     total_rooms = serializers.SerializerMethodField()
     total_beds = serializers.SerializerMethodField()
+    occupied_beds = serializers.SerializerMethodField()
+    available_beds = serializers.SerializerMethodField()
+    availability_by_type = serializers.SerializerMethodField()
+    total_by_type = serializers.SerializerMethodField()
+    pending_applications_count = serializers.SerializerMethodField()
+    pending_room_changes_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Dormitory
-        fields = ['id', 'name', 'gender', 'total_rooms', 'total_beds', 'assigned_warden', 'warden_name', 'room_prefix', 'room_configurations']
-        read_only_fields = ['warden_name', 'total_rooms', 'total_beds']
+        fields = ['id', 'name', 'gender', 'total_rooms', 'total_beds', 'assigned_warden', 'warden_name', 
+                 'room_prefix', 'room_configurations', 'occupied_beds', 'available_beds', 'availability_by_type',
+                 'total_by_type', 'pending_applications_count', 'pending_room_changes_count']
+        read_only_fields = ['warden_name', 'total_rooms', 'total_beds', 'occupied_beds', 'available_beds', 
+                           'availability_by_type', 'total_by_type', 'pending_applications_count', 'pending_room_changes_count']
     
     def get_total_rooms(self, obj):
         """Calculate total rooms by counting actual Room objects"""
@@ -28,6 +37,38 @@ class DormitorySerializer(serializers.ModelSerializer):
         from rooms.models import Bed, Room
         # Count all beds in rooms that belong to this dormitory
         return Bed.objects.filter(room__dormitory=obj).count()
+
+    def get_occupied_beds(self, obj):
+        from rooms.models import Bed
+        return Bed.objects.filter(room__dormitory=obj, is_occupied=True).count()
+
+    def get_available_beds(self, obj):
+        from rooms.models import Bed
+        return Bed.objects.filter(room__dormitory=obj, is_occupied=False).count()
+
+    def get_availability_by_type(self, obj):
+        from django.db.models import Count
+        from rooms.models import Bed
+        # Group available beds by room type
+        data = Bed.objects.filter(room__dormitory=obj, is_occupied=False).values('room__room_type').annotate(count=Count('id'))
+        return {item['room__room_type']: item['count'] for item in data}
+
+    def get_total_by_type(self, obj):
+        from django.db.models import Count
+        from rooms.models import Bed
+        # Group ALL beds by room type (Total Capacity)
+        data = Bed.objects.filter(room__dormitory=obj).values('room__room_type').annotate(count=Count('id'))
+        return {item['room__room_type']: item['count'] for item in data}
+
+    def get_pending_applications_count(self, obj):
+        # Count pending DormApplications for this dormitory
+        from student_requests.models import DormApplication
+        return DormApplication.objects.filter(preferred_dormitory=obj, status='PENDING').count()
+
+    def get_pending_room_changes_count(self, obj):
+        # Count pending RoomChangeRequests where preferred_dormitory is this dorm
+        from student_requests.models import Request
+        return Request.objects.filter(preferred_dormitory=obj, status='Pending').count()
 
     def _process_room_configurations(self, instance, configurations):
         """

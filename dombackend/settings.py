@@ -43,10 +43,16 @@ INSTALLED_APPS = [
     'dormitories',
     'rooms',
     'allocations',
-    'requests',
+    'student_requests',
     'reports',
+    'payments',
     'corsheaders',
 ]
+
+# Razorpay Configuration
+# REPLACE THESE WITH YOUR ACTUAL TEST KEYS FROM RAZORPAY DASHBOARD
+RAZORPAY_KEY_ID = 'rzp_test_SBxsHH8PJGL54x'
+RAZORPAY_KEY_SECRET = 'wZHtqayIs8S837GCSdT6ZvCF'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -143,7 +149,27 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'kafathimahanan@gmail.com' # UPDATE THIS WITH YOUR GMAIL ADDRESS
+EMAIL_HOST_PASSWORD = 'cmvt oobh jhsq gzdt' # App Password provided
+
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "http://localhost:8080",
     "http://127.0.0.1:8080",
 ]
+
+# Razorpay Configuration
+RAZORPAY_KEY_ID = 'rzp_test_SBxsHH8PJGL54x'
+RAZORPAY_KEY_SECRET = 'wZHtqayIs8S837GCSdT6ZvCF'
+
+

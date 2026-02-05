@@ -37,6 +37,7 @@ class StudentProfile(models.Model):
         max_length=10,
         choices=(('MALE', 'Male'), ('FEMALE', 'Female'))
     )
+    can_change_room = models.BooleanField(default=False)
 
     def __str__(self):
         return self.student_id
