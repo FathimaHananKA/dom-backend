@@ -68,6 +68,9 @@ class RequestSerializer(serializers.ModelSerializer):
                 'bed_number': allocation.bed.bed_number,
                 'allocated_at': allocation.allocated_at,
                 'is_paid': allocation.is_paid,
+                'warden_name': allocation.bed.room.dormitory.assigned_warden.user.get_full_name() or allocation.bed.room.dormitory.assigned_warden.user.username if allocation.bed.room.dormitory.assigned_warden else 'N/A',
+                'warden_email': allocation.bed.room.dormitory.assigned_warden.user.email if allocation.bed.room.dormitory.assigned_warden else 'N/A',
+                'warden_phone': allocation.bed.room.dormitory.assigned_warden.phone_number if allocation.bed.room.dormitory.assigned_warden else 'N/A'
             }
         except Exception as e:
             print(f"Error serializing allocation for request {obj.id}: {str(e)}")
@@ -187,7 +190,7 @@ class DormApplicationSerializer(serializers.ModelSerializer):
                 'bed_number': allocation.bed.bed_number,
                 'allocated_at': allocation.allocated_at,
                 'is_paid': allocation.is_paid,
-                'warden_name': allocation.bed.room.dormitory.assigned_warden.user.username if allocation.bed.room.dormitory.assigned_warden else 'N/A',
+                'warden_name': allocation.bed.room.dormitory.assigned_warden.user.get_full_name() or allocation.bed.room.dormitory.assigned_warden.user.username if allocation.bed.room.dormitory.assigned_warden else 'N/A',
                 'warden_email': allocation.bed.room.dormitory.assigned_warden.user.email if allocation.bed.room.dormitory.assigned_warden else 'N/A',
                 'warden_phone': allocation.bed.room.dormitory.assigned_warden.phone_number if allocation.bed.room.dormitory.assigned_warden else 'N/A'
             }

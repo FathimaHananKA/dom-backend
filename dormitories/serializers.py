@@ -3,7 +3,10 @@ from .models import Dormitory
 from rooms.models import Room
 
 class DormitorySerializer(serializers.ModelSerializer):
-    warden_name = serializers.CharField(source='assigned_warden.user.username', read_only=True)
+    warden_name = serializers.CharField(source='assigned_warden.user.get_full_name', read_only=True)
+    warden_email = serializers.CharField(source='assigned_warden.user.email', read_only=True)
+    warden_phone = serializers.CharField(source='assigned_warden.phone_number', read_only=True)
+    
     room_configurations = serializers.ListField(
         child=serializers.DictField(), 
         write_only=True, 
@@ -21,10 +24,12 @@ class DormitorySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Dormitory
-        fields = ['id', 'name', 'gender', 'type', 'category', 'total_rooms', 'total_beds', 'assigned_warden', 'warden_name', 
+        fields = ['id', 'name', 'gender', 'type', 'category', 'total_rooms', 'total_beds', 'assigned_warden', 
+                 'warden_name', 'warden_email', 'warden_phone',
                  'room_prefix', 'room_configurations', 'occupied_beds', 'available_beds', 'availability_by_type',
                  'total_by_type', 'pending_applications_count', 'pending_room_changes_count']
-        read_only_fields = ['warden_name', 'total_rooms', 'total_beds', 'occupied_beds', 'available_beds', 
+        read_only_fields = ['warden_name', 'warden_email', 'warden_phone', 
+                           'total_rooms', 'total_beds', 'occupied_beds', 'available_beds', 
                            'availability_by_type', 'total_by_type', 'pending_applications_count', 'pending_room_changes_count']
     
     def get_total_rooms(self, obj):
