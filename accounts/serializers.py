@@ -87,9 +87,47 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     user = UserSerializer(read_only=True)
 
+    status = serializers.SerializerMethodField()
+    payment_status = serializers.SerializerMethodField()
+
     class Meta:
         model = StudentProfile
         fields = '__all__'
+
+    def get_status(self, obj):
+        try:
+            from student_requests.models import DormApplication, NewStudentRequest, Request
+            
+            # Check for initial dorm application
+            app = DormApplication.objects.filter(student=obj).order_by('-created_at').first()
+            if app:
+                # Normalize PENDING/APPROVED/REJECTED to Title Case
+                return app.status.capitalize()
+            
+            # Check for new student request
+            new_req = NewStudentRequest.objects.filter(student=obj).order_by('-created_at').first()
+            if new_req:
+                return new_req.status
+            
+            # Check for room change request
+            room_req = Request.objects.filter(student=obj).order_by('-requested_at').first()
+            if room_req:
+                return room_req.status
+                
+            return 'Pending'
+        except Exception:
+            return 'Pending'
+
+    def get_payment_status(self, obj):
+        try:
+            from payments.models import Payment
+            payment_exists = Payment.objects.filter(
+                student=obj, 
+                status='SUCCESS'
+            ).exists()
+            return 'Paid' if payment_exists else 'Pending'
+        except Exception:
+            return 'Pending'
 
     def create(self, validated_data):
         username = validated_data.pop('username')
