@@ -37,6 +37,7 @@ class StudentProfile(models.Model):
         max_length=10,
         choices=(('MALE', 'Male'), ('FEMALE', 'Female'))
     )
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
     can_change_room = models.BooleanField(default=False)
 
     def __str__(self):

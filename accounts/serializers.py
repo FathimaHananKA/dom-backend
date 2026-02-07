@@ -24,21 +24,25 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Find all users matching the identifier (email or username)
         candidates = User.objects.filter(Q(email=identifier) | Q(username=identifier))
-        print(f"FOUND {candidates.count()} CANDIDATE(S)")
+        print(f"FOUND {candidates.count()} CANDIDATE(S) for '{identifier}'")
 
         found_user = None
         has_inactive_match = False
         
         for i, user in enumerate(candidates):
             pw_match = user.check_password(password)
-            print(f"Checking Candidate {i+1}: {user.username} (ID: {user.id})")
+            print(f"Checking Candidate {i+1}:")
+            print(f"  - Username: {user.username}")
+            print(f"  - Email: {user.email}")
+            print(f"  - ID: {user.id}")
             print(f"  - Password Match: {pw_match}")
             print(f"  - Is Active: {user.is_active}")
+            print(f"  - Is Superuser: {user.is_superuser}")
             
             if pw_match:
                 if user.is_active:
                     found_user = user
-                    print("  - [SUCCESS] Active matching user found!")
+                    print(f"  - [SUCCESS] Active matching user found: {user.username}")
                     break
                 else:
                     has_inactive_match = True
@@ -54,14 +58,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             }
         
         if not candidates.exists():
-            print("FAILED: No account exists with that identifier.")
+            print(f"FAILED: No account exists for identifier: {identifier}")
             raise serializers.ValidationError({'detail': f'ERROR_CODE_1: No account exists for: {identifier}'})
         
         if has_inactive_match:
-            print("FAILED: Match found but it is inactive.")
+            print(f"FAILED: Match found for {identifier} but it is inactive.")
             raise serializers.ValidationError({'detail': 'ERROR_CODE_2: Your account is currently inactive.'})
             
-        print("FAILED: All candidates failed password check.")
+        print(f"FAILED: All {candidates.count()} candidates for {identifier} failed password check.")
         raise serializers.ValidationError({'detail': f'ERROR_CODE_3: Incorrect password for {identifier}. Try resetting it.'})
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -82,13 +86,18 @@ class UserSerializer(serializers.ModelSerializer):
     
     def get_student_profile(self, obj):
         if hasattr(obj, 'studentprofile'):
-            return {
+            data = {
                 'student_id': obj.studentprofile.student_id,
                 'department': obj.studentprofile.department,
                 'year': obj.studentprofile.year,
                 'gender': obj.studentprofile.gender,
                 'can_change_room': obj.studentprofile.can_change_room,
             }
+            try:
+                data['phone_number'] = obj.studentprofile.phone_number
+            except Exception:
+                data['phone_number'] = 'N/A'
+            return data
         return None
 
     def create(self, validated_data):
@@ -115,6 +124,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 
     status = serializers.SerializerMethodField()
     payment_status = serializers.SerializerMethodField()
+    phone_number = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = StudentProfile
@@ -144,10 +154,28 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         except Exception:
             return 'Pending'
 
+    def update(self, instance, validated_data):
+        username = validated_data.pop('username', None)
+        email = validated_data.pop('email', None)
+        password = validated_data.pop('password', None)
+        
+        user_data = {}
+        if username: user_data['username'] = username
+        if email: user_data['email'] = email
+        if password: user_data['password'] = password
+        
+        if user_data:
+            user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
+            user_serializer.is_valid(raise_exception=True)
+            user_serializer.save()
+            
+        return super().update(instance, validated_data)
+
     def create(self, validated_data):
         username = validated_data.pop('username')
         email = validated_data.pop('email')
         password = validated_data.pop('password')
+        phone_number = validated_data.get('phone_number', '')
         
         user_data = {'username': username, 'email': email, 'password': password}
         user_serializer = UserSerializer(data=user_data)
@@ -172,6 +200,27 @@ class WardenProfileSerializer(serializers.ModelSerializer):
         model = WardenProfile
         fields = ['id', 'user', 'employee_id', 'phone_number', 'username', 'email', 'password', 'first_name', 'last_name', 'gender']
         
+    def update(self, instance, validated_data):
+        username = validated_data.pop('username', None)
+        email = validated_data.pop('email', None)
+        password = validated_data.pop('password', None)
+        first_name = validated_data.pop('first_name', None)
+        last_name = validated_data.pop('last_name', None)
+        
+        user_data = {}
+        if username: user_data['username'] = username
+        if email: user_data['email'] = email
+        if password: user_data['password'] = password
+        if first_name is not None: user_data['first_name'] = first_name
+        if last_name is not None: user_data['last_name'] = last_name
+        
+        if user_data:
+            user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
+            user_serializer.is_valid(raise_exception=True)
+            user_serializer.save()
+            
+        return super().update(instance, validated_data)
+
     def create(self, validated_data):
         username = validated_data.pop('username')
         email = validated_data.pop('email')

@@ -121,9 +121,19 @@ class PasswordResetConfirmView(viewsets.GenericViewSet):
             user = User.objects.get(pk=uid)
             
             if default_token_generator.check_token(user, token):
-                user.set_password(new_password)
-                user.save()
-                return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
+                # Synchronize password across ALL accounts with this email
+                email = user.email
+                if email:
+                    users_to_update = User.objects.filter(email=email)
+                    for u in users_to_update:
+                        u.set_password(new_password)
+                        u.save()
+                    count = users_to_update.count()
+                else:
+                    user.set_password(new_password)
+                    user.save()
+                    count = 1
+                return Response({'message': f'Password has been reset successfully for {count} account(s).'}, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):

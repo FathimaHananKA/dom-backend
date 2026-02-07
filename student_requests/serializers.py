@@ -131,6 +131,8 @@ class DormApplicationSerializer(serializers.ModelSerializer):
     gender = serializers.CharField(source='student.gender', read_only=True)
     department = serializers.CharField(source='student.department', read_only=True)
     dorm_name = serializers.CharField(source='preferred_dormitory.name', read_only=True)
+    student_email = serializers.EmailField(source='student.user.email', read_only=True)
+    student_phone = serializers.SerializerMethodField()
     allocation = serializers.SerializerMethodField()
     warden_info = serializers.SerializerMethodField()
 
@@ -143,6 +145,8 @@ class DormApplicationSerializer(serializers.ModelSerializer):
             'student_id',
             'gender',
             'department',
+            'student_email',
+            'student_phone',
             'preferred_dormitory',
             'room_preference',
             'dorm_name',
@@ -152,6 +156,12 @@ class DormApplicationSerializer(serializers.ModelSerializer):
             'warden_info'
         ]
         read_only_fields = ['created_at', 'student', 'student_username', 'student_id', 'gender', 'department']
+    def get_student_phone(self, obj):
+        """Get student's phone number"""
+        try:
+            return getattr(obj.student, 'phone_number', 'N/A')
+        except Exception:
+            return 'N/A'
 
     def get_warden_info(self, obj):
         """Get warden info from the preferred dormitory"""

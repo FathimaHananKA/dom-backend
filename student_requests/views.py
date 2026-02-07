@@ -51,6 +51,18 @@ class RequestViewSet(ModelViewSet):
         except Exception:
             pass
 
+        # Check for existing pending requests
+        has_allocation = hasattr(student_profile, 'allocation') and student_profile.allocation is not None
+        
+        pending_requests = Request.objects.filter(student=student_profile, status='Pending').exists()
+        # If student has allocation, we ignore the 'PENDING' status of initial apps
+        pending_apps = not has_allocation and DormApplication.objects.filter(student=student_profile, status='PENDING').exists()
+        pending_new = NewStudentRequest.objects.filter(student=student_profile, status='Pending').exists()
+
+        if pending_requests or pending_apps or pending_new:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'detail': 'You already have a pending request. Please wait for it to be processed.'})
+
         request_obj = serializer.save(
             student=student_profile, 
             current_room=current_room,
@@ -150,7 +162,18 @@ class DormApplicationCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         # Automatically assign the logged-in student
-        application = serializer.save(student=self.request.user.studentprofile)
+        student_profile = self.request.user.studentprofile
+
+        # Check for existing pending requests
+        pending_requests = Request.objects.filter(student=student_profile, status='Pending').exists()
+        pending_apps = DormApplication.objects.filter(student=student_profile, status='PENDING').exists()
+        pending_new = NewStudentRequest.objects.filter(student=student_profile, status='Pending').exists()
+
+        if pending_requests or pending_apps or pending_new:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'detail': 'You already have a pending request. Please wait for it to be processed.'})
+
+        application = serializer.save(student=student_profile)
         
         # Send Application Received Email
         try:
@@ -200,8 +223,8 @@ class DormApplicationDetailView(generics.RetrieveAPIView):
     def get_object(self):
         # Return the dorm application for the logged-in student
         student_profile = self.request.user.studentprofile
-        # There should be only one active application per student
-        return DormApplication.objects.filter(student=student_profile).first()
+        # Return the latest dorm application for the logged-in student
+        return DormApplication.objects.filter(student=student_profile).order_by('-created_at').first()
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -294,7 +317,18 @@ class NewStudentRequestViewSet(ModelViewSet):
         return NewStudentRequest.objects.filter(student__user=user)
 
     def perform_create(self, serializer):
-        serializer.save(student=self.request.user.studentprofile)
+        student_profile = self.request.user.studentprofile
+
+        # Check for existing pending requests
+        pending_requests = Request.objects.filter(student=student_profile, status='Pending').exists()
+        pending_apps = DormApplication.objects.filter(student=student_profile, status='PENDING').exists()
+        pending_new = NewStudentRequest.objects.filter(student=student_profile, status='Pending').exists()
+
+        if pending_requests or pending_apps or pending_new:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'detail': 'You already have a pending request. Please wait for it to be processed.'})
+
+        serializer.save(student=student_profile)
     
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def warden_pending(self, request):
