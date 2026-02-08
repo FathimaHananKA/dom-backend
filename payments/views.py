@@ -104,15 +104,8 @@ class VerifyPaymentView(views.APIView):
                 print("DEBUG MANUAL: Match! (Manual check passed)")
             else:
                 print("DEBUG MANUAL: Mismatch! (Manual check failed)")
-            
-            
-            # TEMPORARY: Skip signature verification for testing
-            # In production, you MUST enable this verification
-            # Uncomment the line below and ensure you have valid Razorpay keys
-            # client.utility.verify_payment_signature(params_dict)
-            
-            print("WARNING: Signature verification is DISABLED for testing!")
-            print("This is NOT secure for production use!")
+                # FAIL the request if signature mismatch
+                return Response({'detail': 'Signature verification failed'}, status=400)
             
             
             
@@ -217,21 +210,40 @@ class PaymentStatusView(views.APIView):
                     'message': 'No allocation found. Please apply for a room first.'
                 })
             
-            # Check if payment exists for this allocation
+            # Check if ANY success payment exists for this allocation
             payment = Payment.objects.filter(
                 student=student_profile,
-                allocation=allocation
-            ).order_by('-created_at').first()
+                allocation=allocation,
+                status='SUCCESS'
+            ).first()
+            
+            if not payment:
+                # No success payment found, get the latest one (Pending/Failed)
+                payment = Payment.objects.filter(
+                    student=student_profile,
+                    allocation=allocation
+                ).order_by('-created_at').first()
             
             if payment:
                 # Payment exists - return detailed information
+                # Payment exists - return detailed information
+                # Self-healing: Ensure allocation is marked as paid
+                if allocation and not allocation.is_paid and payment.status == 'SUCCESS':
+                    print(f"Self-healing: Updating allocation {allocation.id} is_paid to True based on Payment {payment.id}")
+                    allocation.is_paid = True
+                    allocation.save()
+
                 serializer = PaymentDetailSerializer(payment)
-                return Response({
+                response = Response({
                     'has_allocation': True,
                     'has_payment': True,
                     'is_paid': payment.status == 'SUCCESS',
                     'payment': serializer.data
                 })
+                # Prevent caching of payment status
+                response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+                response['Pragma'] = 'no-cache'
+                return response
             else:
                 # No payment yet - return allocation info and amount due with full details
                 bed = allocation.bed

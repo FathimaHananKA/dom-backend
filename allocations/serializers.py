@@ -63,4 +63,4 @@ class AllocationListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Allocation
-        fields = ['id', 'student', 'bed', 'student_name', 'student_id', 'dormitory_name', 'room_number', 'bed_number', 'allocated_at', 'room_type', 'floor']
+        fields = ['id', 'student', 'bed', 'student_name', 'student_id', 'dormitory_name', 'room_number', 'bed_number', 'allocated_at', 'room_type', 'floor', 'is_paid']
